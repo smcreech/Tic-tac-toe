@@ -55,42 +55,54 @@ int main(int argc, char *argv[]) {
 	if (recv(sockfd,&key,4,0)!=4){
 		print_error("Error receiving key");
 	}
-	
+	int semid;
+	if((semid = semget(key, 1, 0666 | IPC_CREAT)) == -1){
+			print_error("Error getting id");
+	}
 	char* board;
 	if (recv(sockfd,&board,58,0)!=58){
-		print_error("Error recieving String");
+		print_error("Error recieving board");
 	}
-	printf("%s");
-	
-	char* msg;
-	if (recv(sockfd,&msg,17,0)!=17){
-                print_error("Error recieving String");
-        }
-        printf("%s");
 
-	int semid;
-	struct sembuf op[1];
-	int retval;
-	op[0].sem_num = 0;
-	op[0].sem_op = 1;
-	op[0].sem_flg = 0;
-	
-	if ((retval = semop(semid, op, 1)) == -1)
-		printf("Error incrementing semaphore", errno);
+	printf("%s");
+        /*struct sembuf op[1];
+        int retval;*/
 	int choice;
-	scanf("%d", &choice);
-	if (send(sockfd, &choice,4,0)!=4){
-			print_error("Error sending choice");
+	char msg[17];
+	char status[12];
+	_Bool win = 0;
+	while(win!=1){
+	
+	if (recv(sockfd,&msg,17,0)!=17){
+                print_error("Error recieving message");
+        }
+        printf("%s", &msg);
+	
+	if (strcmp(msg, "It is your turn\n'\0'")==0){
+		scanf("%d",&choice);
+		if (send(sockfd, &choice,4,0)!=4){
+                        print_error("Error sending choice");
+        	}
+		/*op[0].sem_num = 0;
+        	op[0].sem_op = 1;
+        	op[0].sem_flg = 0;
+		if ((retval = semop(semid, op, 1)) == -1){
+                	print_error("Error incrementing semaphore");
+        	}*/
+	}
+	if (recv(sockfd,&board,58,0)!=58){
+                print_error("Error recieving updated board");
+        }
+                printf("%s",&board);
+		
+		if(recv(sockfd, &win, 1, 0)!=1){
+			print_error("error receiving boolean");
 		}
-	/*int semid = semget(&key,1,0666 | IPC_CREAT);
-	int semval = semctl(semid,0,GETVAL);
-	int semid = semget(x,1,0666 | IPC_CREAT);
-	int semval = semctl(semid,0,GETVAL);
-	send(sockfd,&semval,4,0);
-	close(sockfd);
-	return 0;*/	
-        /*int value;*/
-       
+	}
+      if (recv(sockfd,&status,12,0)!=12){
+	      print_error("Error receiveing game status");
+	}
+      printf("%s", &status);
 
 }
 void print_error(char *str) {
