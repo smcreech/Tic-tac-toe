@@ -50,51 +50,48 @@ int main(int argc, char *argv[]) {
         }
         printf("connection made...\n");
         freeaddrinfo(host_ai);
+	
+	int key;
+	if (recv(sockfd,&key,4,0)!=4){
+		print_error("Error receiving key");
+	}
+	
+	char* board;
+	if (recv(sockfd,&board,58,0)!=58){
+		print_error("Error recieving String");
+	}
+	printf("%s");
+	
+	char* msg;
+	if (recv(sockfd,&msg,17,0)!=17){
+                print_error("Error recieving String");
+        }
+        printf("%s");
 
-        char name[] = "shelbiee";;
-        send(sockfd,name,8,0);
-	int x;
-	recv(sockfd,&x,4,0);
+	int semid;
+	struct sembuf op[1];
+	int retval;
+	op[0].sem_num = 0;
+	op[0].sem_op = 1;
+	op[0].sem_flg = 0;
+	
+	if ((retval = semop(semid, op, 1)) == -1)
+		printf("Error incrementing semaphore", errno);
+	int choice;
+	scanf("%d", &choice);
+	if (send(sockfd, &choice,4,0)!=4){
+			print_error("Error sending choice");
+		}
+	/*int semid = semget(&key,1,0666 | IPC_CREAT);
+	int semval = semctl(semid,0,GETVAL);
 	int semid = semget(x,1,0666 | IPC_CREAT);
 	int semval = semctl(semid,0,GETVAL);
 	send(sockfd,&semval,4,0);
 	close(sockfd);
-	return 0;	
+	return 0;*/	
         /*int value;*/
        
-	/*if (recv(sockfd, &value, 4, 0)!=4){
-        	print_error("Error receiving integer.");	
-        }       
-	
-	int same = value + 1;
-	if (send(sockfd, &same, 4, 0)!=4){
-		print_error("Error send increased value");
-	}
-	int arr[5];
-	if (recv(sockfd, &arr, 20, 0)!=20){
-		print_error("Error recieving array");
-	}
-	int j;
-	int min = arr[0];
-	for (j=0;j<5;j++){
-		if (arr[j]<min){
-			min = arr[j];
-		}
-	}
-	int fl = min;
-	printf("%d\n", fl);
-	if (send(sockfd, &fl, 4, 0) != 4){
-		print_error("Error sending smallest integer");
-	}	
-	struct box b1;
-	if (recv(sockfd, &b1, 12, 0)!=12){
-			print_error("error recieving volume");
-	}
-	int vol = b1.width * b1.height * b1.length;
-	
-	if (send(sockfd, &vol, 12, 0)!=12){
-			print_error("error sending volume");
-	}*/
+
 }
 void print_error(char *str) {
         printf("%s: %s\n", str, strerror(errno));
