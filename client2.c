@@ -50,7 +50,8 @@ int main(int argc, char *argv[]) {
         }
         printf("connection made...\n");
         freeaddrinfo(host_ai);
-	
+/*The client receives a key from the server
+ * then sets the semID*/	
 	int key;
 	if (recv(sockfd,&key,4,0)!=4){
 		print_error("Error receiving key");
@@ -59,6 +60,8 @@ int main(int argc, char *argv[]) {
 	if((semid = semget(key, 1, 0666 | IPC_CREAT)) == -1){
 			print_error("Error getting id");
 	}
+/*The client receives the tic-tac-toe board
+ * Then prints the board to the client*/
 	char* board;
 	if (recv(sockfd,&board,58,0)!=58){
 		print_error("Error recieving board");
@@ -71,13 +74,16 @@ int main(int argc, char *argv[]) {
 	char msg[17];
 	char status[12];
 	_Bool win = 0;
+/*Making a while loop for the gameplay and ends when the game is over*/
 	while(win!=1){
-	
+/*receiving the message from server on whos turn it is
+ * Then prints it*/
 	if (recv(sockfd,&msg,17,0)!=17){
                 print_error("Error recieving message");
         }
         printf("%s", &msg);
-	
+/*Comparing a string to tell whos turn it is
+ * and then asking the client for their input on where they would want to go for their turn*/
 	if (strcmp(msg, "It is your turn\n'\0'")==0){
 		scanf("%d",&choice);
 		if (send(sockfd, &choice,4,0)!=4){
@@ -90,15 +96,17 @@ int main(int argc, char *argv[]) {
                 	print_error("Error incrementing semaphore");
         	}*/
 	}
+/*This then receives the game board in the loop to keep the clients updated on the board*/
 	if (recv(sockfd,&board,58,0)!=58){
                 print_error("Error recieving updated board");
         }
                 printf("%s",&board);
-		
+/*This receives the boolean from the server to check of someone has won and and exits the game if someone has*/
 		if(recv(sockfd, &win, 1, 0)!=1){
 			print_error("error receiving boolean");
 		}
 	}
+/*Once out of the while loop it receives the game status message from the server and prints it*/
       if (recv(sockfd,&status,12,0)!=12){
 	      print_error("Error receiveing game status");
 	}
